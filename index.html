@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاسبه مساحت و محیط استخر</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; direction: rtl; }
+        .container { max-width: 400px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        input, button { margin: 10px; padding: 10px; width: 90%; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>محاسبه مساحت و محیط استخر</h2>
+        <label>طول استخر (متر): <input type="number" id="length"></label>
+        <label>عرض استخر (متر): <input type="number" id="width"></label>
+        <label>ارتفاع استخر (متر): <input type="number" id="height"></label>
+        <button onclick="calculatePool()">محاسبه</button>
+        <p id="result"></p>
+    </div>
+
+    <script>
+        function calculatePool() {
+            let L = parseFloat(document.getElementById('length').value);
+            let W = parseFloat(document.getElementById('width').value);
+            let H = parseFloat(document.getElementById('height').value);
+            
+            if (isNaN(L) || isNaN(W) || isNaN(H) || L <= 0 || W <= 0 || H <= 0) {
+                document.getElementById('result').innerHTML = 'لطفاً مقادیر معتبر وارد کنید!';
+                return;
+            }
+            
+            let area = 2 * (L * H) + 2 * (W * H) + (L * W);
+            let perimeter = 2 * (L + W);
+            
+            document.getElementById('result').innerHTML = 
+                `مساحت کل استخر: ${area.toFixed(2)} مترمربع <br> محیط کف استخر: ${perimeter.toFixed(2)} متر`;
+        }
+    </script>
+</body>
+</html>
