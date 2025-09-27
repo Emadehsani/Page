@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>لیست محصولات</title>
-  <link rel="stylesheet" href="https://cdn.fontcdn.ir/Font/Vazir/Vazir.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <style>
-    body { font-family: 'Vazir', sans-serif; direction: rtl; padding: 30px; background: #f9f9f9; }
-    h2 { margin-bottom: 20px; }
-    .filters { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
-    .filter-row { display: flex; align-items: center; gap: 10px; }
-    .filter-option { 
-      display: inline-block; 
-      padding: 5px 15px; 
-      border: 1px solid #ccc; 
-      border-radius: 8px; 
-      margin: 3px; 
-      cursor: pointer; 
-      transition: 0.2s;
-      background: white;
-    }
-    .filter-option.active { background: #007bff; color: white; border-color: #007bff; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
-    th { background: #f0f0f0; }
-    button { margin-bottom: 15px; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
-    #reset-btn { background: #dc3545; color: white; }
-    #reset-btn:hover { background: #c82333; }
-    #export-pdf-btn { background: #28a745; color: white; margin-left: 10px; }
-    #export-pdf-btn:hover { background: #218838; }
-    #export-png-btn { background: #007bff; color: white; }
-    #export-png-btn:hover { background: #0069d9; }
-    .sub-filters { display: flex; gap: 5px; flex-wrap: wrap; }
-    .separator { width: 1px; background: #ccc; margin: 0 8px; align-self: stretch; }
-    .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
-  </style>
+<meta charset="UTF-8">
+<title>لیست محصولات</title>
+<link rel="stylesheet" href="https://cdn.fontcdn.ir/Font/Vazir/Vazir.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  body { font-family: 'Vazir', sans-serif; direction: rtl; padding: 10px; background: #f9f9f9; }
+  h2 { margin-bottom: 20px; }
+  .filters { margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px; }
+  .filter-row { display: flex; align-items: center; gap: 10px; }
+  .filter-option { 
+    display: inline-block; padding: 5px 15px; border: 1px solid #ccc; border-radius: 8px; margin: 3px; cursor: pointer; transition: 0.2s; background: white;
+  }
+  .filter-option.active { background: #007bff; color: white; border-color: #007bff; }
+  table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; font-size: 18px; }
+  th, td { border: 1px solid #ccc; padding: 10px; text-align: center; }
+  th { background: #f0f0f0; }
+  button { margin-bottom: 15px; padding: 10px 18px; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; }
+  #reset-btn { background: #dc3545; color: white; }
+  #reset-btn:hover { background: #c82333; }
+  #export-pdf-btn { background: #28a745; color: white; margin-left: 10px; }
+  #export-pdf-btn:hover { background: #218838; }
+  #export-png-btn { background: #007bff; color: white; }
+  #export-png-btn:hover { background: #0069d9; }
+  .sub-filters { display: flex; gap: 5px; flex-wrap: wrap; }
+  .separator { width: 1px; background: #ccc; margin: 0 8px; align-self: stretch; }
+  .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
+</style>
 </head>
 <body>
 
@@ -73,25 +66,26 @@ function formatNumber(num) {
   return Number(num).toLocaleString('fa-IR');
 }
 
+// دریافت داده‌ها
 fetch(sheetUrl)
-  .then(res => res.text())
-  .then(text => {
-    const rows = text.split("\n").map(r => r.split(","));
-    const headers = rows[0];
-    const data = rows.slice(1).map(r => {
-      let obj = {};
-      headers.forEach((h,i) => obj[h.trim()] = r[i]);
-      return obj;
-    });
-    allData = data;
-    createFilters(allData);
-    renderTable();
+.then(res => res.text())
+.then(text => {
+  const rows = text.split("\n").map(r => r.split(","));
+  const headers = rows[0];
+  const data = rows.slice(1).map(r => {
+    let obj = {};
+    headers.forEach((h,i) => obj[h.trim()] = r[i]);
+    return obj;
   });
+  allData = data;
+  createFilters(allData);
+  renderTable();
+});
 
+// ایجاد فیلترها
 function createFilters(data) {
   const container = document.getElementById("filter-category");
   container.innerHTML = "";
-
   let categories = [...new Set(data.map(d => d.category).filter(Boolean))];
 
   categories.forEach(cat => {
@@ -107,9 +101,7 @@ function createFilters(data) {
     subContainer.className = "sub-filters";
     let subValues = [...new Set(data.filter(d => d.category===cat).map(d=>d.PPL).filter(Boolean))];
 
-    if(subValues.length === 0){
-      subContainer.style.display = "none";
-    }
+    if(subValues.length === 0){ subContainer.style.display = "none"; }
 
     let subButtons = [];
     subValues.forEach(sub => {
@@ -142,9 +134,7 @@ function createFilters(data) {
       subContainer.appendChild(subBtn);
       subButtons.push(subBtn);
     });
-    if(subValues.length > 0){
-      subContainer.style.display = "flex";
-    }
+    if(subValues.length > 0){ subContainer.style.display = "flex"; }
 
     btn.onclick = () => {
       if (activeFilters.category.includes(cat)) {
@@ -166,16 +156,15 @@ function createFilters(data) {
     };
 
     row.appendChild(btn);
-
     const separator = document.createElement("div");
     separator.className = "separator";
     row.appendChild(separator);
-
     row.appendChild(subContainer);
     container.appendChild(row);
   });
 }
 
+// رندر جدول
 function renderTable() {
   const tbody = document.getElementById("product-list");
   tbody.innerHTML = "";
@@ -200,25 +189,10 @@ function renderTable() {
   });
 }
 
-// دکمه خروجی PDF
-document.getElementById("export-pdf-btn").onclick = () => {
-  const table = document.getElementById("product-table");
-  html2canvas(table).then(canvas => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({orientation: "landscape"});
-    const imgData = canvas.toDataURL("image/png");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-    pdf.save("table.pdf");
-  });
-};
-
-// دکمه خروجی PNG
+// خروجی PNG با اندازه 1080x1920
 document.getElementById("export-png-btn").onclick = () => {
   const table = document.getElementById("product-table");
-  html2canvas(table).then(canvas => {
+  html2canvas(table, {width:1080, height:1920, scale:1}).then(canvas => {
     const link = document.createElement("a");
     link.download = 'table.png';
     link.href = canvas.toDataURL();
@@ -226,6 +200,28 @@ document.getElementById("export-png-btn").onclick = () => {
   });
 };
 
+// خروجی PDF با صفحات 1080x1920
+document.getElementById("export-pdf-btn").onclick = () => {
+  const table = document.getElementById("product-table");
+  html2canvas(table, {scale:2}).then(canvas => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation: 'portrait', unit:'px', format:[1080,1920]});
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pageHeight = 1920;
+    const imgHeight = (imgProps.height * 1080) / imgProps.width;
+
+    let position = 0;
+    while(position < imgHeight){
+      pdf.addImage(imgData, 'PNG', 0, -position, 1080, imgHeight);
+      position += pageHeight;
+      if(position < imgHeight) pdf.addPage();
+    }
+    pdf.save('table.pdf');
+  });
+};
+
+// دکمه ریست
 document.getElementById("reset-btn").onclick = () => {
   activeFilters = { category: [], subcategory: [] };
   createFilters(allData);
