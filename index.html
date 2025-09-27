@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>لیست محصولات</title>
   <link rel="stylesheet" href="https://cdn.fontcdn.ir/Font/Vazir/Vazir.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: 'Vazir', sans-serif; direction: rtl; padding: 30px; background: #f9f9f9; }
@@ -27,18 +28,24 @@
     button { margin-bottom: 15px; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
     #reset-btn { background: #dc3545; color: white; }
     #reset-btn:hover { background: #c82333; }
-    #export-btn { background: #28a745; color: white; }
-    #export-btn:hover { background: #218838; }
+    #export-pdf-btn { background: #28a745; color: white; margin-left: 10px; }
+    #export-pdf-btn:hover { background: #218838; }
+    #export-png-btn { background: #007bff; color: white; }
+    #export-png-btn:hover { background: #0069d9; }
     .sub-filters { display: flex; gap: 5px; flex-wrap: wrap; }
     .separator { width: 1px; background: #ccc; margin: 0 8px; align-self: stretch; }
+    .button-group { display: flex; gap: 10px; margin-bottom: 15px; }
   </style>
 </head>
 <body>
 
 <h2>📋 لیست محصولات</h2>
 
-<button id="reset-btn">Reset Filters</button>
-<button id="export-btn">DOWNLOAD</button>
+<div class="button-group">
+  <button id="reset-btn">Reset Filters</button>
+  <button id="export-pdf-btn">DOWNLOAD PDF</button>
+  <button id="export-png-btn">DOWNLOAD PNG</button>
+</div>
 
 <div class="filters" id="filter-category"></div>
 
@@ -64,15 +71,6 @@ let activeFilters = { category: [], subcategory: [] };
 function formatNumber(num) {
   if (!num || isNaN(Number(num)) || Number(num) === 0) return "";
   return Number(num).toLocaleString('fa-IR');
-}
-
-// تبدیل تاریخ میلادی به شمسی ساده
-function getPersianDate() {
-  const today = new Date();
-  const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).format(today);
-  return persian;
 }
 
 fetch(sheetUrl)
@@ -202,68 +200,30 @@ function renderTable() {
   });
 }
 
-// دکمه خروجی PDF حرفه‌ای با jsPDF
-document.getElementById("export-btn").onclick = () => {
-  const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF({orientation: "landscape"});
-
-  // تنظیم فونت و اندازه
-  pdf.setFontSize(22);
-  pdf.text("لیست قیمت محصولات", pdf.internal.pageSize.getWidth()/2, 15, {align: "center"});
-  pdf.setFontSize(16);
-  pdf.text(getPersianDate(), pdf.internal.pageSize.getWidth()/2, 25, {align: "center"});
-  pdf.setFontSize(14);
-  pdf.text("اعتبار این لیست قیمت فقط 24 ساعت می باشد", pdf.internal.pageSize.getWidth()/2, 32, {align: "center"});
-
-  // جدول
-  const startY = 40;
-  const rowHeight = 10;
-  const colWidths = [50, 35, 35, 35, 35, 35]; // عرض ستون‌ها
-  const headers = ["نام محصول","قیمت عمومی","قیمت دیجیتال","قیمت زیر 1000","قیمت کارتنی","قیمت درب"];
-  let x = 10;
-  let y = startY;
-
-  // چاپ هدر جدول
-  pdf.setFontSize(12);
-  headers.forEach((h, i) => {
-    pdf.rect(x, y, colWidths[i], rowHeight);
-    pdf.text(h, x + colWidths[i]/2, y + 7, {align: "center"});
-    x += colWidths[i];
+// دکمه خروجی PDF
+document.getElementById("export-pdf-btn").onclick = () => {
+  const table = document.getElementById("product-table");
+  html2canvas(table).then(canvas => {
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({orientation: "landscape"});
+    const imgData = canvas.toDataURL("image/png");
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+    pdf.save("table.pdf");
   });
+};
 
-  // چاپ ردیف‌ها
-  y += rowHeight;
-  allData.filter(item => {
-    let catMatch = activeFilters.category.length===0 || activeFilters.category.includes(item.category);
-    let subMatch = activeFilters.subcategory.length===0 || activeFilters.subcategory.includes(item.PPL);
-    return catMatch && subMatch;
-  }).forEach(item => {
-    x = 10;
-    const row = [
-      item.name || "",
-      formatNumber(item.price_omomi),
-      formatNumber(item.price_digital),
-      formatNumber(item.price_1000),
-      formatNumber(item.price_box),
-      formatNumber(item.door)
-    ];
-    row.forEach((cell, i) => {
-      pdf.rect(x, y, colWidths[i], rowHeight);
-      pdf.text(cell.toString(), x + colWidths[i]/2, y + 7, {align: "center"});
-      x += colWidths[i];
-    });
-    y += rowHeight;
-    if(y + rowHeight > pdf.internal.pageSize.getHeight() - 20){
-      pdf.addPage();
-      y = startY;
-    }
+// دکمه خروجی PNG
+document.getElementById("export-png-btn").onclick = () => {
+  const table = document.getElementById("product-table");
+  html2canvas(table).then(canvas => {
+    const link = document.createElement("a");
+    link.download = 'table.png';
+    link.href = canvas.toDataURL();
+    link.click();
   });
-
-  // متن پایین
-  pdf.setFontSize(12);
-  pdf.text("جهت استعلام قیمت به روز با این شماره تماس بگیرید 09120836625 غلامی", pdf.internal.pageSize.getWidth()/2, pdf.internal.pageSize.getHeight() - 10, {align: "center"});
-
-  pdf.save("table.pdf");
 };
 
 document.getElementById("reset-btn").onclick = () => {
