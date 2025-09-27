@@ -67,6 +67,15 @@ function formatNumber(num) {
   return Number(num).toLocaleString('fa-IR');
 }
 
+// تبدیل تاریخ میلادی به شمسی ساده
+function getPersianDate() {
+  const today = new Date();
+  const persian = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(today);
+  return persian;
+}
+
 fetch(sheetUrl)
   .then(res => res.text())
   .then(text => {
@@ -194,7 +203,7 @@ function renderTable() {
   });
 }
 
-// دکمه خروجی PDF فقط
+// دکمه خروجی PDF فقط با متن بالا و پایین
 document.getElementById("export-btn").onclick = () => {
   const table = document.getElementById("product-table");
   html2canvas(table).then(canvas => {
@@ -204,7 +213,23 @@ document.getElementById("export-btn").onclick = () => {
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+
+    // اضافه کردن متن بالای PDF
+    pdf.setFontSize(22);
+    pdf.text("لیست قیمت محصولات", pdfWidth / 2, 15, {align: "center"});
+
+    pdf.setFontSize(16);
+    pdf.text(getPersianDate(), pdfWidth / 2, 25, {align: "center"});
+    pdf.setFontSize(14);
+    pdf.text("اعتبار این لیست قیمت فقط 24 ساعت می باشد", pdfWidth / 2, 32, {align: "center"});
+
+    // اضافه کردن تصویر جدول
+    pdf.addImage(imgData, 'PNG', 0, 40, pdfWidth, pdfHeight);
+
+    // متن پایین PDF
+    pdf.setFontSize(12);
+    pdf.text("جهت استعلام قیمت به روز با این شماره تماس بگیرید 09120836625 غلامی", pdfWidth / 2, pdf.internal.pageSize.getHeight() - 10, {align: "center"});
+
     pdf.save("table.pdf");
   });
 };
