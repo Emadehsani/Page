@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>لیست محصولات</title>
   <link rel="stylesheet" href="https://cdn.fontcdn.ir/Font/Vazir/Vazir.css">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <style>
     body { font-family: 'Vazir', sans-serif; direction: rtl; padding: 30px; background: #f9f9f9; }
@@ -203,35 +202,68 @@ function renderTable() {
   });
 }
 
-// دکمه خروجی PDF فقط با متن بالا و پایین
+// دکمه خروجی PDF حرفه‌ای با jsPDF
 document.getElementById("export-btn").onclick = () => {
-  const table = document.getElementById("product-table");
-  html2canvas(table).then(canvas => {
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({orientation: "landscape"});
-    const imgData = canvas.toDataURL("image/png");
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({orientation: "landscape"});
 
-    // اضافه کردن متن بالای PDF
-    pdf.setFontSize(22);
-    pdf.text("لیست قیمت محصولات", pdfWidth / 2, 15, {align: "center"});
+  // تنظیم فونت و اندازه
+  pdf.setFontSize(22);
+  pdf.text("لیست قیمت محصولات", pdf.internal.pageSize.getWidth()/2, 15, {align: "center"});
+  pdf.setFontSize(16);
+  pdf.text(getPersianDate(), pdf.internal.pageSize.getWidth()/2, 25, {align: "center"});
+  pdf.setFontSize(14);
+  pdf.text("اعتبار این لیست قیمت فقط 24 ساعت می باشد", pdf.internal.pageSize.getWidth()/2, 32, {align: "center"});
 
-    pdf.setFontSize(16);
-    pdf.text(getPersianDate(), pdfWidth / 2, 25, {align: "center"});
-    pdf.setFontSize(14);
-    pdf.text("اعتبار این لیست قیمت فقط 24 ساعت می باشد", pdfWidth / 2, 32, {align: "center"});
+  // جدول
+  const startY = 40;
+  const rowHeight = 10;
+  const colWidths = [50, 35, 35, 35, 35, 35]; // عرض ستون‌ها
+  const headers = ["نام محصول","قیمت عمومی","قیمت دیجیتال","قیمت زیر 1000","قیمت کارتنی","قیمت درب"];
+  let x = 10;
+  let y = startY;
 
-    // اضافه کردن تصویر جدول
-    pdf.addImage(imgData, 'PNG', 0, 40, pdfWidth, pdfHeight);
-
-    // متن پایین PDF
-    pdf.setFontSize(12);
-    pdf.text("جهت استعلام قیمت به روز با این شماره تماس بگیرید 09120836625 غلامی", pdfWidth / 2, pdf.internal.pageSize.getHeight() - 10, {align: "center"});
-
-    pdf.save("table.pdf");
+  // چاپ هدر جدول
+  pdf.setFontSize(12);
+  headers.forEach((h, i) => {
+    pdf.rect(x, y, colWidths[i], rowHeight);
+    pdf.text(h, x + colWidths[i]/2, y + 7, {align: "center"});
+    x += colWidths[i];
   });
+
+  // چاپ ردیف‌ها
+  y += rowHeight;
+  allData.filter(item => {
+    let catMatch = activeFilters.category.length===0 || activeFilters.category.includes(item.category);
+    let subMatch = activeFilters.subcategory.length===0 || activeFilters.subcategory.includes(item.PPL);
+    return catMatch && subMatch;
+  }).forEach(item => {
+    x = 10;
+    const row = [
+      item.name || "",
+      formatNumber(item.price_omomi),
+      formatNumber(item.price_digital),
+      formatNumber(item.price_1000),
+      formatNumber(item.price_box),
+      formatNumber(item.door)
+    ];
+    row.forEach((cell, i) => {
+      pdf.rect(x, y, colWidths[i], rowHeight);
+      pdf.text(cell.toString(), x + colWidths[i]/2, y + 7, {align: "center"});
+      x += colWidths[i];
+    });
+    y += rowHeight;
+    if(y + rowHeight > pdf.internal.pageSize.getHeight() - 20){
+      pdf.addPage();
+      y = startY;
+    }
+  });
+
+  // متن پایین
+  pdf.setFontSize(12);
+  pdf.text("جهت استعلام قیمت به روز با این شماره تماس بگیرید 09120836625 غلامی", pdf.internal.pageSize.getWidth()/2, pdf.internal.pageSize.getHeight() - 10, {align: "center"});
+
+  pdf.save("table.pdf");
 };
 
 document.getElementById("reset-btn").onclick = () => {
