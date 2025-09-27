@@ -22,8 +22,8 @@
       background: white;
     }
     .filter-option.active { background: #007bff; color: white; border-color: #007bff; }
-    table { width: auto; border-collapse: collapse; margin-top: 20px; background: white; table-layout: auto; }
-    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; white-space: nowrap; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
     th { background: #f0f0f0; }
     button { margin-bottom: 15px; padding: 8px 15px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; }
     #reset-btn { background: #dc3545; color: white; }
@@ -39,7 +39,7 @@
 <h2>📋 لیست محصولات</h2>
 
 <button id="reset-btn">Reset Filters</button>
-<button id="export-btn">خروجی PDF/تصویر</button>
+<button id="export-btn">DOWNLOAD</button>
 
 <div class="filters" id="filter-category"></div>
 
@@ -194,29 +194,13 @@ function renderTable() {
   });
 }
 
-// خروجی تصویر با عرض بهینه
+// دکمه خروجی PDF فقط
 document.getElementById("export-btn").onclick = () => {
   const table = document.getElementById("product-table");
-  html2canvas(table, { scale: 2 }).then(canvas => {
-    // عرض واقعی جدول
-    const tableWidth = table.offsetWidth;
-    const ratio = 1080 / tableWidth;
-    const finalCanvas = document.createElement("canvas");
-    finalCanvas.width = 1080;
-    finalCanvas.height = canvas.height * ratio;
-    const ctx = finalCanvas.getContext("2d");
-    ctx.drawImage(canvas, 0, 0, finalCanvas.width, finalCanvas.height);
-
-    // دانلود تصویر
-    const link = document.createElement("a");
-    link.download = 'table.png';
-    link.href = finalCanvas.toDataURL();
-    link.click();
-
-    // دانلود PDF
+  html2canvas(table).then(canvas => {
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF({orientation: "landscape"});
-    const imgData = finalCanvas.toDataURL("image/png");
+    const imgData = canvas.toDataURL("image/png");
     const imgProps = pdf.getImageProperties(imgData);
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
