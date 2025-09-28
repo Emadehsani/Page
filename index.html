@@ -187,43 +187,22 @@ function renderTable() {
   });
 }
 
-// تابع محاسبه عرض ستون‌ها با طول بزرگترین متن
-function getColumnWidths(table) {
-  const ctx = document.createElement("canvas").getContext("2d");
-  ctx.font = "18px Vazir";
-  const widths = [];
-  const rows = Array.from(table.rows);
-  const colsCount = rows[0].cells.length;
-
-  for(let c=0; c<colsCount; c++){
-    let maxWidth = 0;
-    rows.forEach(row=>{
-      const text = row.cells[c].innerText;
-      const w = ctx.measureText(text).width + 20; // padding
-      if(w>maxWidth) maxWidth=w;
-    });
-    widths.push(maxWidth);
-  }
-  return widths;
-}
-
 // خروجی PNG
 document.getElementById("export-png-btn").onclick = () => {
   const table = document.getElementById("product-table");
-  const clone = table.cloneNode(true);
-
-  // ساخت کانتینر موقت با عنوان SAKALA
   const container = document.createElement("div");
+  container.style.background = "#fff";
+  container.style.padding = "20px";
+
   const title = document.createElement("div");
   title.innerText = "SAKALA";
   title.style.fontSize = "40px";
   title.style.fontWeight = "bold";
   title.style.textAlign = "center";
   title.style.marginBottom = "20px";
+
   container.appendChild(title);
-  container.appendChild(clone);
-  container.style.background = "#fff";
-  container.style.padding = "20px";
+  container.appendChild(table.cloneNode(true));
 
   html2canvas(container, {scale:2}).then(canvas => {
     const link = document.createElement("a");
@@ -236,19 +215,19 @@ document.getElementById("export-png-btn").onclick = () => {
 // خروجی PDF
 document.getElementById("export-pdf-btn").onclick = () => {
   const table = document.getElementById("product-table");
-  const clone = table.cloneNode(true);
-
   const container = document.createElement("div");
+  container.style.background = "#fff";
+  container.style.padding = "20px";
+
   const title = document.createElement("div");
   title.innerText = "SAKALA";
   title.style.fontSize = "40px";
   title.style.fontWeight = "bold";
   title.style.textAlign = "center";
   title.style.marginBottom = "20px";
+
   container.appendChild(title);
-  container.appendChild(clone);
-  container.style.background = "#fff";
-  container.style.padding = "20px";
+  container.appendChild(table.cloneNode(true));
 
   html2canvas(container, {scale:2}).then(canvas => {
     const { jsPDF } = window.jspdf;
