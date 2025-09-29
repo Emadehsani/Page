@@ -47,15 +47,29 @@ button { margin-bottom: 15px; padding: 10px 18px; border: none; border-radius: 8
   <thead>
     <tr>
       <th>نام محصول</th>
-      <th>قیمت عمومی</th>
-      <th>قیمت دیجیتال</th>
-      <th>قیمت زیر 1000</th>
-      <th>قیمت کارتنی</th>
+      <th>طرح عمومی</th>
+      <th> چاپ اختصاصی </th>
+      <th>چاپ اختصاصی <br><span class="small-text">زیر 1000 عدد</span></th>
+      <th>چاپ اختصاصی <br><span class="small-text">بالای 1000 عدد</span></th>
       <th>قیمت درب</th>
     </tr>
   </thead>
   <tbody id="product-list"></tbody>
 </table>
+
+<style>
+  /* استایل برای متن‌های کوچکتر */
+  .small-text {
+    font-size: 12px; /* فونت کوچکتر */
+    color: #555; /* رنگ متن کوچک‌تر */
+  }
+
+  /* تنظیم فاصله بین خطوط */
+  th {
+    text-align: center;
+    line-height: 1.6; /* تنظیم فاصله بین خطوط در تیترها */
+  }
+</style>
 
 <div id="current-date"></div>
 <div id="price-note">اعتبار این لیست قیمت 24 ساعت پس از انتشار آن می باشد</div>
